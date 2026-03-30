@@ -60,7 +60,55 @@
             box-shadow: 0 0 0 2px rgba(0,120,212,0.2);
         }
 
-        .btn {
+        /* 按钮横向布局 */
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        /* 获取按钮 2/3 */
+        .btn-get {
+            flex: 2;
+            padding: 12px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        /* 清空按钮 1/3 */
+        .btn-clear {
+            flex: 1;
+            padding: 12px;
+            background: #6b7280;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-get:hover {
+            background: #0086e5;
+        }
+        .btn-clear:hover {
+            background: #4b5563;
+        }
+
+        .btn-get:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* 底部复制按钮 */
+        .btn-full {
             width: 100%;
             padding: 12px;
             background: #0078d4;
@@ -73,19 +121,14 @@
             margin-bottom: 12px;
             transition: background 0.2s;
         }
-
-        .btn:hover {
-            background: #0086e5;
-        }
-
-        .btn:disabled {
+        .btn-full:disabled {
             background: #94a3b8;
             cursor: not-allowed;
         }
 
-        /* 关键修改：增大最小高度 */
+        /* 结果框高度 */
         .result-box {
-            min-height: 500px; /* 大幅增加高度，可根据需要继续调大 */
+            min-height: 500px;
             white-space: pre-wrap;
             font-family: Consolas, monospace;
             font-size: 13px;
@@ -128,16 +171,20 @@
         <textarea id="iidInput" rows="3" placeholder="请粘贴 54 位或 63 位纯数字 IID 安装 ID"></textarea>
     </div>
 
-    <button class="btn" id="getBtn">获取确认 ID</button>
+    <!-- 按钮横向排列：获取2/3 + 清空1/3 -->
+    <div class="btn-row">
+        <button class="btn-get" id="getBtn">获取确认ID</button>
+        <button class="btn-clear" id="clearBtn">清空</button>
+    </div>
+
     <div class="status" id="status">✅ 就绪</div>
 
     <div class="form-group">
         <label>获取结果</label>
-        <!-- 关键修改：增加 rows 行数控制高度 -->
         <textarea readonly class="result-box" id="resultBox" rows="15" placeholder="获取结果将显示在这里"></textarea>
     </div>
 
-    <button class="btn" id="copyBtn" disabled>复制结果</button>
+    <button class="btn-full" id="copyBtn" disabled>复制结果</button>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -159,9 +206,19 @@ function toast(msg) {
 const $ = id => document.getElementById(id);
 const iidInput = $("iidInput");
 const getBtn = $("getBtn");
+const clearBtn = $("clearBtn");
 const resultBox = $("resultBox");
 const copyBtn = $("copyBtn");
 const status = $("status");
+
+// 清空按钮：清空两个文本框 + 重置状态
+clearBtn.addEventListener("click", () => {
+    iidInput.value = "";
+    resultBox.value = "";
+    copyBtn.disabled = true;
+    status.textContent = "✅ 就绪";
+    toast("🗑️ 已清空所有内容");
+});
 
 // 获取确认ID
 getBtn.addEventListener("click", async () => {
@@ -170,11 +227,9 @@ getBtn.addEventListener("click", async () => {
         getBtn.textContent = "处理中...";
         status.textContent = "🔍 校验 IID...";
 
-        // 清洗 IID（只保留数字）
         const raw = iidInput.value.trim();
         const iid = raw.replace(/[^0-9]/g, "");
 
-        // 基础校验
         if (!iid) {
             toast("❌ 请输入有效的 IID");
             throw new Error("IID 为空");
@@ -186,7 +241,6 @@ getBtn.addEventListener("click", async () => {
 
         status.textContent = "📡 发送请求中...";
 
-        // 前端只发送 IID，所有逻辑在 Cloudflare 完成
         const res = await fetch(PROXY_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -199,7 +253,6 @@ getBtn.addEventListener("click", async () => {
             throw new Error(result.error || "请求失败");
         }
 
-        // 成功
         resultBox.value = JSON.stringify(result, null, 2);
         copyBtn.disabled = false;
         toast("✅ 获取成功！");
@@ -211,7 +264,7 @@ getBtn.addEventListener("click", async () => {
         console.error(err);
     } finally {
         getBtn.disabled = false;
-        getBtn.textContent = "获取确认 ID";
+        getBtn.textContent = "获取确认ID";
     }
 });
 
