@@ -83,9 +83,9 @@
             cursor: not-allowed;
         }
 
-        /* 👇 这里已经把高度从 120px 改成 300px，更大更舒服 */
+        /* 关键修改：增大最小高度 */
         .result-box {
-            min-height: 300px;
+            min-height: 500px; /* 大幅增加高度，可根据需要继续调大 */
             white-space: pre-wrap;
             font-family: Consolas, monospace;
             font-size: 13px;
@@ -133,7 +133,8 @@
 
     <div class="form-group">
         <label>获取结果</label>
-        <textarea readonly class="result-box" id="resultBox" placeholder="获取结果将显示在这里"></textarea>
+        <!-- 关键修改：增加 rows 行数控制高度 -->
+        <textarea readonly class="result-box" id="resultBox" rows="15" placeholder="获取结果将显示在这里"></textarea>
     </div>
 
     <button class="btn" id="copyBtn" disabled>复制结果</button>
