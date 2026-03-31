@@ -82,14 +82,12 @@
             background: #ffffff;
         }
 
-        /* 按钮横向布局 */
         .btn-row {
             display: flex;
             gap: 12px;
             margin-bottom: 16px;
         }
 
-        /* 基础按钮 */
         .btn {
             padding: 14px;
             border: none;
@@ -103,14 +101,12 @@
             justify-content: center;
         }
 
-        /* 获取按钮 */
         .btn-get {
             flex: 2;
             background: #0078d4;
             color: white;
         }
 
-        /* 清空按钮 */
         .btn-clear {
             flex: 1;
             background: #64748b;
@@ -136,7 +132,6 @@
             box-shadow: none;
         }
 
-        /* 底部复制按钮 */
         .btn-full {
             width: 100%;
             padding: 14px;
@@ -164,7 +159,6 @@
             box-shadow: none;
         }
 
-        /* 结果框 */
         .result-box {
             min-height: 260px;
             white-space: pre-wrap;
@@ -182,7 +176,6 @@
             min-height: 22px;
         }
 
-        /* 提示弹窗 */
         .toast {
             position: fixed;
             top: 24px;
@@ -205,7 +198,6 @@
             top: 32px;
         }
 
-        /* 响应式 */
         @media (max-width: 480px) {
             .container {
                 padding: 24px 20px;
@@ -248,6 +240,51 @@
 // ==============================================
 const PROXY_URL = "https://msc.x2ray.cfd/";
 
+// ========================= 你要的 IID 区块校验函数 =========================
+/**
+ * 校验IID区块合法性
+ * @param {string} block - IID的单个区块
+ * @returns {boolean} 区块是否合法
+ */
+function checkBlock(block) {
+    if (!/^\d+$/.test(block) || block.length < 2) return false;
+
+    const check = Number(block.at(-1));
+    let sum = 0;
+
+    for (let i = 0; i < block.length - 1; i++) {
+        const d = Number(block[i]);
+        sum += i % 2 === 0 ? d : d * 2;
+    }
+
+    return sum % 7 === check;
+}
+
+/**
+ * 校验整个IID的合法性（增强版，返回具体错误信息）
+ * @param {string} iid - 待校验的IID字符串
+ * @returns {object} 校验结果 {valid: boolean, error?: string, failedBlocks?: array}
+ */
+function validateIID(iid) {
+    if (!/^\d+$/.test(iid))
+        return { valid: false, error: "not_numeric" };
+
+    if (iid.length !== 54 && iid.length !== 63)
+        return { valid: false, error: "invalid_length", length: iid.length };
+
+    const blockSize = iid.length / 9;
+    const failedBlocks = [];
+
+    for (let i = 0; i < 9; i++) {
+        const block = iid.slice(i * blockSize, (i + 1) * blockSize);
+        if (!checkBlock(block)) {
+            failedBlocks.push({ index: i + 1, value: block });
+        }
+    }
+
+    return { valid: failedBlocks.length === 0, failedBlocks };
+}
+
 // ========================= 工具函数 =========================
 function toast(msg) {
     const t = document.getElementById('toast');
@@ -265,7 +302,6 @@ const resultBox = $("resultBox");
 const copyBtn = $("copyBtn");
 const status = $("status");
 
-// 清空按钮：清空两个文本框 + 重置状态
 clearBtn.addEventListener("click", () => {
     iidInput.value = "";
     resultBox.value = "";
@@ -274,30 +310,36 @@ clearBtn.addEventListener("click", () => {
     toast("🗑️ 已清空所有内容");
 });
 
-// 获取确认ID
 getBtn.addEventListener("click", async () => {
     try {
         getBtn.disabled = true;
         getBtn.textContent = "处理中...";
         status.textContent = "🔍 校验 IID...";
 
-        // 清洗 IID（只保留数字）
         const raw = iidInput.value.trim();
         const iid = raw.replace(/[^0-9]/g, "");
 
-        // 基础校验
         if (!iid) {
             toast("❌ 请输入有效的 IID");
             throw new Error("IID 为空");
         }
-        if (iid.length !== 54 && iid.length !== 63) {
-            toast("❌ IID 必须是 54/63 位");
-            throw new Error("长度错误");
+
+        // ✅ 启用你要的区块校验
+        const check = validateIID(iid);
+        if (!check.valid) {
+            if (check.error === "not_numeric") {
+                toast("❌ IID 只能是纯数字");
+            } else if (check.error === "invalid_length") {
+                toast("❌ IID 必须是 54/63 位");
+            } else if (check.failedBlocks.length > 0) {
+                const bad = check.failedBlocks.map(b => `第${b.index}块: ${b.value}`).join(" ");
+                toast("❌ IID 区块错误：" + bad);
+            }
+            throw new Error("IID 校验失败");
         }
 
         status.textContent = "📡 发送请求中...";
 
-        // 前端只发送 IID，所有逻辑在 Cloudflare 完成
         const res = await fetch(PROXY_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -310,7 +352,6 @@ getBtn.addEventListener("click", async () => {
             throw new Error(result.error || "请求失败");
         }
 
-        // 成功
         resultBox.value = JSON.stringify(result, null, 2);
         copyBtn.disabled = false;
         toast("✅ 获取成功！");
@@ -326,7 +367,6 @@ getBtn.addEventListener("click", async () => {
     }
 });
 
-// 复制结果
 copyBtn.addEventListener("click", () => {
     resultBox.select();
     navigator.clipboard.writeText(resultBox.value).then(() => {
