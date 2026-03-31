@@ -379,7 +379,8 @@ getBtn.addEventListener("click", async () => {
             status.textContent = "❌ IID 不合法";
             throw new Error("校验失败");
         }
-
+        
+        resultBox.value = "";
         status.textContent = "📡 发送请求...";
         const res = await fetch(PROXY_URL, {
             method: "POST",
