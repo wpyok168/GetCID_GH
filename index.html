@@ -39,24 +39,26 @@
 
         /* 标题样式：大小、加粗、颜色、居中 */
         .title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 28px;
-            color: #1e293b;
-            text-align: center;
-            letter-spacing: 0.3px;
-            position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          position: relative; /* 让伪元素相对标题定位 */
         }
-
+        
         /* 标题下方蓝色装饰条 */
         .title::after {
-            content: "";
-            display: block;
-            width: 50px;
-            height: 4px;
-            background: #0078d4;
-            border-radius: 2px;
-            margin: 10px auto 0;
+          content: "";
+          display: block;
+          width: 50px;
+          height: 4px;
+          background: #0078d4;
+          border-radius: 2px;
+          margin: 10px auto 0;
+          position: absolute;
+          bottom: -14px; /* 调整到文字下方合适位置 */
+          left: 50%;
+          transform: translateX(-50%); /* 强制水平居中 */
         }
 
         /* 表单项间距 */
@@ -231,7 +233,14 @@
 <body>
 
 <div class="container">
-    <div class="title"> <img src="https://icons.duckduckgo.com/ip3/microsoft.com.ico" />微软确认 ID 获取工具</div>
+    <div class="title" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+      <img 
+        src="https://icons.duckduckgo.com/ip3/microsoft.com.ico" 
+        style="width: 32px; height: 32px;" 
+        alt="微软图标"
+      >
+      微软确认 ID 获取工具
+    </div>
 
     <div class="form-group">
         <label>IID 安装 ID</label>
