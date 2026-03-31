@@ -110,6 +110,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            white-space: nowrap;
         }
 
         /* 获取按钮：主色（蓝色） */
@@ -123,6 +124,13 @@
         .btn-clear {
             flex: 1;
             background: #64748b;
+            color: white;
+        }
+
+        /* 复制按钮：和清空同宽同行 */
+        .btn-copy {
+            flex: 1;
+            background: #0078d4;
             color: white;
         }
 
@@ -140,44 +148,19 @@
             box-shadow: 0 4px 12px rgba(100, 116, 139, 0.15);
         }
 
-        /* 按钮禁用状态：灰色 + 不可点击 */
-        .btn-get:disabled {
-            background: #94a3b8;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* 复制结果按钮 - 布局在清空按钮下方，大小相同 */
-        .btn-full {
-            width: calc(33.333% - 8px); /* 与清空按钮等宽 */
-            padding: 14px;
-            background: #0078d4;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-left: auto; /* 右对齐到清空按钮正下方 */
-            display: block;
-            transition: all 0.25s ease;
-            margin-bottom: 16px;
-        }
-
         /* 复制按钮悬停 */
-        .btn-full:hover {
+        .btn-copy:hover {
             background: #0086e5;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
         }
 
-        /* 复制按钮禁用 */
-        .btn-full:disabled {
-            background: #94a3b8;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        /* 按钮禁用状态：灰色 + 不可点击 */
+        .btn:disabled {
+            background: #94a3b8 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         /* 结果框样式：最小高度、等宽字体、自动换行 */
@@ -231,9 +214,6 @@
             .title {
                 font-size: 22px;
             }
-            .btn-full {
-                width: calc(33.333% - 6px);
-            }
         }
 
         /* 底部说明文字样式 */
@@ -259,10 +239,8 @@
     <div class="btn-row">
         <button class="btn btn-get" id="getBtn">获取确认 ID</button>
         <button class="btn btn-clear" id="clearBtn">清空</button>
+        <button class="btn btn-copy" id="copyBtn" disabled>复制结果</button>
     </div>
-
-    <!-- 复制结果按钮移动到此处，清空按钮正下方 -->
-    <button class="btn-full" id="copyBtn" disabled>复制结果</button>
 
     <div class="status" id="status">✅ 就绪</div>
 
@@ -351,8 +329,8 @@ const $ = id => document.getElementById(id);
 const iidInput = $("iidInput");
 const getBtn = $("getBtn");
 const clearBtn = $("clearBtn");
-const resultBox = $("resultBox");
 const copyBtn = $("copyBtn");
+const resultBox = $("resultBox");
 const status = $("status");
 
 clearBtn.addEventListener("click", () => {
