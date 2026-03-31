@@ -59,7 +59,7 @@
         label {
             display: block;
             margin-bottom: 10px;
-            font-weight: 600;
+            font-weight: 60;
             color: #334155;
             font-size: 15px;
         }
@@ -237,16 +237,20 @@
 <script>
 const PROXY_URL = "https://msc.x2ray.cfd/";
 
-// ========================== IID 区块校验算法 ==========================
+// ========================== 【修复】正确的微软 IID 区块校验 ==========================
 function checkBlock(block) {
     if (!/^\d+$/.test(block) || block.length < 2) return false;
-    const check = Number(block.at(-1));
+    const checkDigit = Number(block.slice(-1));
+    const digits = block.slice(0, -1).split('').map(Number);
+    
     let sum = 0;
-    for (let i = 0; i < block.length - 1; i++) {
-        const d = Number(block[i]);
-        sum += i % 2 === 0 ? d : d * 2;
+    for (let i = 0; i < digits.length; i++) {
+        let d = digits[i];
+        if (i % 2 === 1) d *= 2;       // 奇数位 ×2
+        sum += Math.floor(d / 10) + d % 10;
     }
-    return sum % 7 === check;
+    
+    return (10 - (sum % 10)) % 10 === checkDigit;
 }
 
 function validateIID(iid) {
@@ -254,19 +258,14 @@ function validateIID(iid) {
     if (iid.length !== 54 && iid.length !== 63) return { valid: false, error: "invalid_length" };
 
     const blockSize = iid.length / 9;
-    const failedBlocks = [];
+    const failed = [];
 
     for (let i = 0; i < 9; i++) {
-        const block = iid.slice(i * blockSize, (i + 1) * blockSize);
-        if (!checkBlock(block)) {
-            failedBlocks.push(i + 1);
-        }
+        const block = iid.substr(i * blockSize, blockSize);
+        if (!checkBlock(block)) failed.push(i + 1);
     }
 
-    return {
-        valid: failedBlocks.length === 0,
-        failedBlocks: failedBlocks
-    };
+    return { valid: failed.length === 0, failedBlocks: failed };
 }
 
 // ========================== 工具 ==========================
@@ -277,7 +276,7 @@ function toast(msg) {
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ========================== 按钮逻辑 ==========================
+// ========================== 主逻辑 ==========================
 const $ = id => document.getElementById(id);
 const iidInput = $("iidInput");
 const getBtn = $("getBtn");
@@ -294,42 +293,37 @@ clearBtn.addEventListener("click", () => {
     toast("🗑️ 已清空");
 });
 
-// ✅ 核心：点击按钮强制校验，错误一定提示
 getBtn.addEventListener("click", async () => {
     try {
         getBtn.disabled = true;
         getBtn.textContent = "处理中...";
         status.textContent = "🔍 校验 IID 区块...";
 
-        const raw = iidInput.value.trim();
-        const iid = raw.replace(/[^0-9]/g, "");
+        const raw = iidInput.value.trim().replace(/[^0-9]/g, "");
+        const iid = raw;
 
         if (!iid) {
             toast("❌ 请输入有效的 IID");
             throw new Error("为空");
         }
 
-        // ==============================================
-        // 强制调用，一定会执行！
-        // ==============================================
+        // 执行校验
         const check = validateIID(iid);
 
         if (!check.valid) {
             if (check.error === "not_numeric") {
                 toast("❌ IID 只能是纯数字");
-            }
-            else if (check.error === "invalid_length") {
+            } else if (check.error === "invalid_length") {
                 toast("❌ IID 必须是 54/63 位");
-            }
-            else {
-                // ✅ 关键修复：一定会提示哪一组错误
+            } else {
+                // ✅ 这里一定会提示：第 X 组错误
                 toast("❌ IID 校验失败：第 " + check.failedBlocks.join(", ") + " 组错误");
             }
             status.textContent = "❌ IID 不合法";
             throw new Error("校验失败");
         }
 
-        // 校验通过才发送请求
+        // 校验通过
         status.textContent = "📡 发送请求...";
         const res = await fetch(PROXY_URL, {
             method: "POST",
