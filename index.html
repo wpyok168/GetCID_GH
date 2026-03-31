@@ -240,7 +240,7 @@
 // ==============================================
 const PROXY_URL = "https://msc.x2ray.cfd/";
 
-// ========================= 你要的 IID 区块校验函数 =========================
+// ========================= IID 区块校验函数 =========================
 /**
  * 校验IID区块合法性
  * @param {string} block - IID的单个区块
@@ -266,11 +266,13 @@ function checkBlock(block) {
  * @returns {object} 校验结果 {valid: boolean, error?: string, failedBlocks?: array}
  */
 function validateIID(iid) {
+    console.log("✅ validateIID 被调用了，IID：", iid); // 调试日志
+
     if (!/^\d+$/.test(iid))
         return { valid: false, error: "not_numeric" };
 
     if (iid.length !== 54 && iid.length !== 63)
-        return { valid: false, error: "invalid_length", length: iid.length };
+        return { valid: false, error: "invalid_length" };
 
     const blockSize = iid.length / 9;
     const failedBlocks = [];
@@ -282,7 +284,10 @@ function validateIID(iid) {
         }
     }
 
-    return { valid: failedBlocks.length === 0, failedBlocks };
+    return {
+        valid: failedBlocks.length === 0,
+        failedBlocks
+    };
 }
 
 // ========================= 工具函数 =========================
@@ -293,7 +298,7 @@ function toast(msg) {
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ========================= 页面交互逻辑 =========================
+// ========================= 页面交互 =========================
 const $ = id => document.getElementById(id);
 const iidInput = $("iidInput");
 const getBtn = $("getBtn");
@@ -307,39 +312,43 @@ clearBtn.addEventListener("click", () => {
     resultBox.value = "";
     copyBtn.disabled = true;
     status.textContent = "✅ 就绪";
-    toast("🗑️ 已清空所有内容");
+    toast("🗑️ 已清空");
 });
 
 getBtn.addEventListener("click", async () => {
     try {
         getBtn.disabled = true;
         getBtn.textContent = "处理中...";
-        status.textContent = "🔍 校验 IID...";
+        status.textContent = "🔍 正在校验 IID...";
 
+        // 1. 清洗数据
         const raw = iidInput.value.trim();
         const iid = raw.replace(/[^0-9]/g, "");
 
         if (!iid) {
-            toast("❌ 请输入有效的 IID");
-            throw new Error("IID 为空");
+            toast("❌ 请输入 IID");
+            throw new Error("为空");
         }
 
-        // ✅ 启用你要的区块校验
-        const check = validateIID(iid);
-        if (!check.valid) {
-            if (check.error === "not_numeric") {
-                toast("❌ IID 只能是纯数字");
-            } else if (check.error === "invalid_length") {
-                toast("❌ IID 必须是 54/63 位");
-            } else if (check.failedBlocks.length > 0) {
-                const bad = check.failedBlocks.map(b => `第${b.index}块: ${b.value}`).join(" ");
-                toast("❌ IID 区块错误：" + bad);
+        // ==============================================
+        // ✅ 这里强制调用 validateIID，绝对执行
+        // ==============================================
+        const checkResult = validateIID(iid);
+
+        if (!checkResult.valid) {
+            if (checkResult.error === "not_numeric") {
+                toast("❌ 只能输入数字");
+            } else if (checkResult.error === "invalid_length") {
+                toast("❌ 长度必须是 54/63 位");
+            } else if (checkResult.failedBlocks.length > 0) {
+                const err = checkResult.failedBlocks.map(b => `第${b.index}块错误`).join(" ");
+                toast("❌ " + err);
             }
-            throw new Error("IID 校验失败");
+            throw new Error("IID 校验不通过");
         }
 
-        status.textContent = "📡 发送请求中...";
-
+        // 校验通过 → 发送请求
+        status.textContent = "📡 请求中...";
         const res = await fetch(PROXY_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -347,10 +356,7 @@ getBtn.addEventListener("click", async () => {
         });
 
         const result = await res.json();
-
-        if (!res.ok) {
-            throw new Error(result.error || "请求失败");
-        }
+        if (!res.ok) throw new Error(result.error || "请求失败");
 
         resultBox.value = JSON.stringify(result, null, 2);
         copyBtn.disabled = false;
@@ -358,7 +364,7 @@ getBtn.addEventListener("click", async () => {
         status.textContent = "✅ 完成";
 
     } catch (err) {
-        toast("❌ 错误：" + err.message);
+        toast("❌ " + err.message);
         status.textContent = "❌ 失败";
         console.error(err);
     } finally {
@@ -370,7 +376,7 @@ getBtn.addEventListener("click", async () => {
 copyBtn.addEventListener("click", () => {
     resultBox.select();
     navigator.clipboard.writeText(resultBox.value).then(() => {
-        toast("📋 已复制到剪贴板");
+        toast("📋 已复制");
     });
 });
 </script>
