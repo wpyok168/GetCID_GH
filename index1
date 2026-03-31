@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微软确认 ID 获取工具</title>
+    <style>
+        /* 全局样式重置：统一内外边距、字体、盒模型 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* 页面背景：渐变底色 + 居中布局 */
+        body {
+            background: linear-gradient(135deg, #e8f1ff 0%, #f0f7ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 主容器：白色卡片 + 圆角 + 阴影 */
+        .container {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 120, 212, 0.1);
+            width: 100%;
+            border: 1px solid rgba(0, 120, 212, 0.08);
+        }
+
+        /* 标题样式：大小、加粗、颜色、居中 */
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 28px;
+            color: #1e293b;
+            text-align: center;
+            letter-spacing: 0.3px;
+            position: relative;
+        }
+
+        /* 标题下方蓝色装饰条 */
+        .title::after {
+            content: "";
+            display: block;
+            width: 50px;
+            height: 4px;
+            background: #0078d4;
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+
+        /* 表单项间距 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* 标签样式：加粗、颜色、字号 */
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 15px;
+        }
+
+        /* 输入框/文本框通用样式：宽高、内边距、边框、圆角、背景 */
+        textarea, input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            resize: vertical;
+            outline: none;
+            transition: all 0.25s ease;
+            background: #fafbfc;
+        }
+
+        /* 输入框聚焦效果：边框变色 + 阴影高亮 */
+        textarea:focus, input:focus {
+            border-color: #0078d4;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+            background: #ffffff;
+        }
+
+        /* 按钮行布局：横向排列 + 间距 */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* 按钮基础样式：内边距、圆角、字体、鼠标手势 */
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 获取按钮：主色（蓝色） */
+        .btn-get {
+            flex: 2;
+            background: #0078d4;
+            color: white;
+        }
+
+        /* 清空按钮：次要色（灰色） */
+        .btn-clear {
+            flex: 1;
+            background: #64748b;
+            color: white;
+        }
+
+        /* 获取按钮悬停效果：变亮 + 上浮 + 阴影 */
+        .btn-get:hover {
+            background: #0086e5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+        }
+
+        /* 清空按钮悬停效果 */
+        .btn-clear:hover {
+            background: #475569;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.15);
+        }
+
+        /* 按钮禁用状态：灰色 + 不可点击 */
+        .btn-get:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 底部全屏按钮 */
+        .btn-full {
+            width: 100%;
+            padding: 14px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: all 0.25s ease;
+        }
+
+        /* 全屏按钮悬停 */
+        .btn-full:hover {
+            background: #0086e5;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+        }
+
+        /* 全屏按钮禁用 */
+        .btn-full:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 结果框样式：最小高度、等宽字体、自动换行 */
+        .result-box {
+            min-height: 330px;
+            white-space: pre-wrap;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* 状态提示文字：居中、颜色、大小 */
+        .status {
+            text-align: center;
+            margin: 12px 0;
+            font-size: 15px;
+            color: #059669;
+            font-weight: 500;
+            min-height: 22px;
+        }
+
+        /* 顶部弹窗提示：固定定位、半透明、圆角、隐藏 */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            z-index: 999;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            font-weight: 500;
+            backdrop-filter: blur(4px);
+        }
+
+        /* 弹窗显示动画 */
+        .toast.show {
+            opacity: 1;
+            top: 32px;
+        }
+
+        /* 手机端适配：缩小内边距、标题 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px 20px;
+            }
+            .title {
+                font-size: 22px;
+            }
+        }
+
+        /* 底部说明文字样式 */
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="title">微软确认 ID 获取工具</div>
+
+    <div class="form-group">
+        <label>IID 安装 ID</label>
+        <textarea id="iidInput" rows="2" placeholder="请粘贴 54 位或 63 位纯数字 IID 安装 ID"></textarea>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn btn-get" id="getBtn">获取确认 ID</button>
+        <button class="btn btn-clear" id="clearBtn">清空</button>
+    </div>
+
+    <div class="status" id="status">✅ 就绪</div>
+
+    <div class="form-group">
+        <label>获取结果</label>
+        <textarea readonly class="result-box" id="resultBox" rows="23" placeholder="获取结果将显示在这里"></textarea>
+    </div>
+
+    <button class="btn-full" id="copyBtn" disabled>复制结果</button>
+
+    <!-- ====================== 底部添加的说明文字 ====================== -->
+    <div class="footer-note">
+        本工具后端服务器通过官方接口 visualsupport.microsoft.com 获取确认 ID<br>
+        数据安全返回并展示于前端 GitHub 页面，仅用于合法授权设备激活
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PROXY_URL = "https://msc.x2ray.cfd/";
+
+// ========================== 你的原版模7算法，完全没改 ==========================
+/**
+ * 校验IID区块合法性
+ * @param {string} block - IID的单个区块
+ * @returns {boolean} 区块是否合法
+ */
+function checkBlock(block) {
+    if (!/^\d+$/.test(block) || block.length < 2) return false;
+
+    const check = Number(block.at(-1));
+    let sum = 0;
+
+    for (let i = 0; i < block.length - 1; i++) {
+        const d = Number(block[i]);
+        sum += i % 2 === 0 ? d : d * 2;
+    }
+
+    return sum % 7 === check;
+}
+
+/**
+ * 校验整个IID的合法性（增强版，返回具体错误信息）
+ * @param {string} iid - 待校验的IID字符串
+ * @returns {object} 校验结果 {valid: boolean, error?: string, failedBlocks?: array}
+ */
+function validateIID(iid) {
+    // 检查是否全为数字
+    if (!/^\d+$/.test(iid))
+        return { valid: false, error: "not_numeric" };
+
+    // 检查长度是否为54或63位
+    if (iid.length !== 54 && iid.length !== 63)
+        return { valid: false, error: "invalid_length", length: iid.length };
+
+    // 检查每个区块的合法性
+    const blockSize = iid.length / 9;
+    const failedBlocks = [];
+
+    for (let i = 0; i < 9; i++) {
+        const block = iid.slice(i * blockSize, (i + 1) * blockSize);
+
+        if (!checkBlock(block)) {
+            failedBlocks.push({
+                index: i + 1,
+                value: block
+            });
+        }
+    }
+
+    return {
+        valid: failedBlocks.length === 0,
+        failedBlocks
+    };
+}
+
+// ========================== 工具 ==========================
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ========================== 主逻辑 ==========================
+const $ = id => document.getElementById(id);
+const iidInput = $("iidInput");
+const getBtn = $("getBtn");
+const clearBtn = $("clearBtn");
+const resultBox = $("resultBox");
+const copyBtn = $("copyBtn");
+const status = $("status");
+
+clearBtn.addEventListener("click", () => {
+    iidInput.value = "";
+    resultBox.value = "";
+    copyBtn.disabled = true;
+    status.textContent = "✅ 就绪";
+    toast("🗑️ 已清空");
+});
+
+getBtn.addEventListener("click", async () => {
+    try {
+        getBtn.disabled = true;
+        getBtn.textContent = "处理中...";
+        status.textContent = "🔍 校验 IID...";
+
+        const raw = iidInput.value.trim().replace(/\D/g, "");
+        if (!raw) {
+            toast("❌ 请输入有效的 IID");
+            throw new Error("为空");
+        }
+
+        const check = validateIID(raw);
+
+        if (!check.valid) {
+            if (check.error === "not_numeric") {
+                toast("❌ IID 只能是纯数字");
+            } else if (check.error === "invalid_length") {
+                toast("❌ IID 必须是 54/63 位");
+            } else {
+                // 同时显示：组号 + 错误的数字
+                const errText = check.failedBlocks.map(b => `第${b.index}组：${b.value}`).join("　");
+                toast("❌ IID 校验失败：" + errText);
+            }
+            status.textContent = "❌ IID 不合法";
+            throw new Error("校验失败");
+        }
+
+        status.textContent = "📡 发送请求...";
+        const res = await fetch(PROXY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ IID: raw })
+        });
+
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || "请求失败");
+
+        resultBox.value = JSON.stringify(result, null, 2);
+        copyBtn.disabled = false;
+        toast("✅ 获取成功！");
+        status.textContent = "✅ 完成";
+
+    } catch (err) {
+        console.error(err);
+    } finally {
+        getBtn.disabled = false;
+        getBtn.textContent = "获取确认 ID";
+    }
+});
+
+copyBtn.addEventListener("click", () => {
+    resultBox.select();
+    navigator.clipboard.writeText(resultBox.value).then(() => {
+        toast("📋 已复制");
+    });
+});
+</script>
+
+</body>
+</html>
