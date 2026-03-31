@@ -237,7 +237,7 @@
 <script>
 const PROXY_URL = "https://msc.x2ray.cfd/";
 
-// ========================== 【你原版 模7 算法，一字未改】==========================
+// ========================== 你的原版模7算法，完全没改 ==========================
 /**
  * 校验IID区块合法性
  * @param {string} block - IID的单个区块
@@ -300,7 +300,7 @@ function toast(msg) {
     setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// ========================== 主逻辑（修复提示） ==========================
+// ========================== 主逻辑 ==========================
 const $ = id => document.getElementById(id);
 const iidInput = $("iidInput");
 const getBtn = $("getBtn");
@@ -329,7 +329,6 @@ getBtn.addEventListener("click", async () => {
             throw new Error("为空");
         }
 
-        // 调用你原版的校验
         const check = validateIID(raw);
 
         if (!check.valid) {
@@ -338,15 +337,14 @@ getBtn.addEventListener("click", async () => {
             } else if (check.error === "invalid_length") {
                 toast("❌ IID 必须是 54/63 位");
             } else {
-                // ✅ 正确提示哪一组错误
-                const errText = check.failedBlocks.map(b => `第${b.index}组`).join(" ");
+                // 同时显示：组号 + 错误的数字
+                const errText = check.failedBlocks.map(b => `第${b.index}组：${b.value}`).join("　");
                 toast("❌ IID 校验失败：" + errText);
             }
             status.textContent = "❌ IID 不合法";
             throw new Error("校验失败");
         }
 
-        // 校验通过
         status.textContent = "📡 发送请求...";
         const res = await fetch(PROXY_URL, {
             method: "POST",
