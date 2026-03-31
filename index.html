@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>微软确认 ID 获取工具</title>
     <style>
+        /* 全局样式重置：统一内外边距、字体、盒模型 */
         * {
             margin: 0;
             padding: 0;
@@ -12,6 +13,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
+        /* 页面背景：渐变底色 + 居中布局 */
         body {
             background: linear-gradient(135deg, #e8f1ff 0%, #f0f7ff 100%);
             min-height: 100vh;
@@ -23,6 +25,7 @@
             justify-content: center;
         }
 
+        /* 主容器：白色卡片 + 圆角 + 阴影 */
         .container {
             background: #ffffff;
             padding: 32px;
@@ -32,6 +35,7 @@
             border: 1px solid rgba(0, 120, 212, 0.08);
         }
 
+        /* 标题样式：大小、加粗、颜色、居中 */
         .title {
             font-size: 24px;
             font-weight: 700;
@@ -42,6 +46,7 @@
             position: relative;
         }
 
+        /* 标题下方蓝色装饰条 */
         .title::after {
             content: "";
             display: block;
@@ -52,10 +57,12 @@
             margin: 10px auto 0;
         }
 
+        /* 表单项间距 */
         .form-group {
             margin-bottom: 20px;
         }
 
+        /* 标签样式：加粗、颜色、字号 */
         label {
             display: block;
             margin-bottom: 10px;
@@ -64,6 +71,7 @@
             font-size: 15px;
         }
 
+        /* 输入框/文本框通用样式：宽高、内边距、边框、圆角、背景 */
         textarea, input {
             width: 100%;
             padding: 14px 16px;
@@ -76,18 +84,21 @@
             background: #fafbfc;
         }
 
+        /* 输入框聚焦效果：边框变色 + 阴影高亮 */
         textarea:focus, input:focus {
             border-color: #0078d4;
             box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
             background: #ffffff;
         }
 
+        /* 按钮行布局：横向排列 + 间距 */
         .btn-row {
             display: flex;
             gap: 12px;
             margin-bottom: 16px;
         }
 
+        /* 按钮基础样式：内边距、圆角、字体、鼠标手势 */
         .btn {
             padding: 14px;
             border: none;
@@ -101,30 +112,35 @@
             justify-content: center;
         }
 
+        /* 获取按钮：主色（蓝色） */
         .btn-get {
             flex: 2;
             background: #0078d4;
             color: white;
         }
 
+        /* 清空按钮：次要色（灰色） */
         .btn-clear {
             flex: 1;
             background: #64748b;
             color: white;
         }
 
+        /* 获取按钮悬停效果：变亮 + 上浮 + 阴影 */
         .btn-get:hover {
             background: #0086e5;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
         }
 
+        /* 清空按钮悬停效果 */
         .btn-clear:hover {
             background: #475569;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(100, 116, 139, 0.15);
         }
 
+        /* 按钮禁用状态：灰色 + 不可点击 */
         .btn-get:disabled {
             background: #94a3b8;
             cursor: not-allowed;
@@ -132,6 +148,7 @@
             box-shadow: none;
         }
 
+        /* 底部全屏按钮 */
         .btn-full {
             width: 100%;
             padding: 14px;
@@ -146,12 +163,14 @@
             transition: all 0.25s ease;
         }
 
+        /* 全屏按钮悬停 */
         .btn-full:hover {
             background: #0086e5;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
         }
 
+        /* 全屏按钮禁用 */
         .btn-full:disabled {
             background: #94a3b8;
             cursor: not-allowed;
@@ -159,6 +178,7 @@
             box-shadow: none;
         }
 
+        /* 结果框样式：最小高度、等宽字体、自动换行 */
         .result-box {
             min-height: 330px;
             white-space: pre-wrap;
@@ -167,6 +187,7 @@
             line-height: 1.5;
         }
 
+        /* 状态提示文字：居中、颜色、大小 */
         .status {
             text-align: center;
             margin: 12px 0;
@@ -176,6 +197,7 @@
             min-height: 22px;
         }
 
+        /* 顶部弹窗提示：固定定位、半透明、圆角、隐藏 */
         .toast {
             position: fixed;
             top: 24px;
@@ -193,11 +215,13 @@
             backdrop-filter: blur(4px);
         }
 
+        /* 弹窗显示动画 */
         .toast.show {
             opacity: 1;
             top: 32px;
         }
 
+        /* 手机端适配：缩小内边距、标题 */
         @media (max-width: 480px) {
             .container {
                 padding: 24px 20px;
