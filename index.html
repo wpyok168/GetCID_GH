@@ -230,6 +230,15 @@
                 font-size: 22px;
             }
         }
+
+        /* 底部说明文字样式 */
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -255,7 +264,14 @@
     </div>
 
     <button class="btn-full" id="copyBtn" disabled>复制结果</button>
+
+    <!-- ====================== 底部添加的说明文字 ====================== -->
+    <div class="footer-note">
+        本工具后端服务器通过官方接口 visualsupport.microsoft.com 获取确认 ID<br>
+        数据安全返回并展示于前端 GitHub 页面，仅用于合法授权设备激活
+    </div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
